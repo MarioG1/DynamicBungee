@@ -49,12 +49,13 @@ public class ServerHeartbeatHandler implements Runnable {
         ConcurrentMap<String, ServerInfo> allServerInfo = DynamicBungee.getPlugin().getServerInfo();
         for (ServerInfo info : allServerInfo.values()) {
             Heartbeat heartbeat = heartbeats.get(info);
-            if (heartbeat == null ||
-                    Calendar.getInstance().getTimeInMillis() - heartbeat.getTimeHeartbeat()
-                            > ServerHeartbeatHandler.TIME_EXPIRE) {
-                ProxyServer.getInstance().getServers().remove(info.getName());
-                ServerHandler.disconnectAll(info);
-                this.heartbeats.remove(info);
+            if (DynamicBungee.getPlugin().getConf().settings_dynserver.contains(info.getName()))
+            {
+                if (heartbeat == null || Calendar.getInstance().getTimeInMillis() - heartbeat.getTimeHeartbeat() > ServerHeartbeatHandler.TIME_EXPIRE) {
+                    ProxyServer.getInstance().getServers().remove(info.getName());
+                    ServerHandler.disconnectAll(info);
+                    this.heartbeats.remove(info);
+                }
             }
         }
         schedule();

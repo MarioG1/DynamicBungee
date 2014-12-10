@@ -7,6 +7,7 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
+
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
@@ -31,18 +32,23 @@ public class ServerHandler {
         Integer port = (Integer) p;
         List list = (List) pl;
 
-        InetSocketAddress socketAddress = new InetSocketAddress(ip, port);
-        ServerInfo serverInfo = ProxyServer.getInstance().getServerInfo(name);
-        if (serverInfo != null) {
-            if (serverInfo.getAddress().equals(socketAddress)) {
-                DynamicBungee.getPlugin().getBeatHandler().heartbeatReceived(serverInfo, list);
-                return;
+        if(DynamicBungee.getPlugin().getConf().settings_dynserver.contains(name))
+        {
+            InetSocketAddress socketAddress = new InetSocketAddress(ip, port);
+            ServerInfo serverInfo = ProxyServer.getInstance().getServerInfo(name);
+            if (serverInfo != null) {
+                if (serverInfo.getAddress().equals(socketAddress)) {
+                    DynamicBungee.getPlugin().getBeatHandler().heartbeatReceived(serverInfo, list);
+                    return;
+                }
+                disconnectAll(serverInfo);
             }
-            disconnectAll(serverInfo);
+            ServerInfo info = ProxyServer.getInstance().constructServerInfo(name, socketAddress, DynamicBungee.getPlugin().getConf().settings_motd, false);
+            ProxyServer.getInstance().getServers().put(name, info);
+            DynamicBungee.getPlugin().getBeatHandler().heartbeatReceived(info, list);
+        } else {
+             DynamicBungee.getPlugin().getLogger().warning("Tried to add server " + name + " wich was not on the dynservers list!");
         }
-        ServerInfo info = ProxyServer.getInstance().constructServerInfo(name, socketAddress, DynamicBungee.getPlugin().getConf().settings_motd, false);
-        ProxyServer.getInstance().getServers().put(name, info);
-        DynamicBungee.getPlugin().getBeatHandler().heartbeatReceived(info, list);
     }
 
     @NetTaskSubscribe(name = "disconnect", args = {"name"})
